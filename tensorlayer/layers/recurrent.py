@@ -154,7 +154,7 @@ class RNN(Layer):
         for var in self.cell.trainable_variables:
             self._weights.append(var)
 
-    @tf.function
+    # @tf.function
     def forward(self, inputs, initial_state=None, **kwargs):
         """
         Parameters
@@ -182,6 +182,9 @@ class RNN(Layer):
             states = [states]
 
         total_steps = inputs.get_shape().as_list()[1]
+
+        self.cell.reset_dropout_mask()
+        self.cell.reset_recurrent_dropout_mask()
 
         for time_step in range(total_steps):
 
@@ -291,7 +294,7 @@ class BiRNN(Layer):
             return_seq_2d=False,
             return_state=False,
             in_channels=None,
-            name=None, # 'birnn'
+            name=None,  # 'birnn'
     ):
         super(BiRNN, self).__init__(name)
 
@@ -304,21 +307,23 @@ class BiRNN(Layer):
             self.build((None, None, in_channels))
             self._built = True
 
-        logging.info("RNN %s: fw_cell: %s, fw_n_units: %s, bw_cell: %s, bw_n_units： %s" %
-                     (self.name, self.fw_cell.__class__.__name__, self.fw_cell.units,
-                      self.bw_cell.__class__.__name__, self.bw_cell.units))
+        logging.info(
+            "BiRNN %s: fw_cell: %s, fw_n_units: %s, bw_cell: %s, bw_n_units： %s" % (
+                self.name, self.fw_cell.__class__.__name__, self.fw_cell.units, self.bw_cell.__class__.__name__,
+                self.bw_cell.units
+            )
+        )
 
     def __repr__(self):
-        s = ('{classname}(fw_cell={fw_cellname}, fw_n_units={fw_n_units}'
-             ', bw_cell={bw_cellname}, bw_n_units={bw_n_units}')
+        s = (
+            '{classname}(fw_cell={fw_cellname}, fw_n_units={fw_n_units}'
+            ', bw_cell={bw_cellname}, bw_n_units={bw_n_units}'
+        )
         s += ', name=\'{name}\''
         s += ')'
         return s.format(
-            classname=self.__class__.__name__,
-            fw_cellname=self.fw_cell.__class__.__name__,
-            fw_n_units=self.fw_cell.units,
-            bw_cellname=self.bw_cell.__class__.__name__,
-            bw_n_units=self.bw_cell.units,
+            classname=self.__class__.__name__, fw_cellname=self.fw_cell.__class__.__name__,
+            fw_n_units=self.fw_cell.units, bw_cellname=self.bw_cell.__class__.__name__, bw_n_units=self.bw_cell.units,
             **self.__dict__
         )
 
@@ -344,7 +349,7 @@ class BiRNN(Layer):
         for var in self.bw_cell.trainable_variables:
             self._weights.append(var)
 
-    @tf.function
+    # @tf.function
     def forward(self, inputs, fw_initial_state=None, bw_initial_state=None, **kwargs):
         """
         Parameters
@@ -377,10 +382,17 @@ class BiRNN(Layer):
 
         total_steps = inputs.get_shape().as_list()[1]
 
+        self.fw_cell.reset_dropout_mask()
+        self.fw_cell.reset_recurrent_dropout_mask()
+        self.bw_cell.reset_dropout_mask()
+        self.bw_cell.reset_recurrent_dropout_mask()
+
         for time_step in range(total_steps):
 
             fw_cell_output, fw_states = self.fw_cell.call(inputs[:, time_step, :], fw_states, training=self.is_train)
-            bw_cell_output, bw_states = self.bw_cell.call(inputs[:, - time_step - 1, :], bw_states, training=self.is_train)
+            bw_cell_output, bw_states = self.bw_cell.call(
+                inputs[:, -time_step - 1, :], bw_states, training=self.is_train
+            )
 
             fw_outputs.append(fw_cell_output)
             bw_outputs.append(bw_cell_output)
@@ -716,7 +728,7 @@ class ConvLSTM(Layer):
         self._add_params(rnn_variables)
 
 
-@tf.function
+# @tf.function
 def retrieve_seq_length_op(data):
     """An op to compute the length of a sequence from input shape of [batch_size, n_step(max), n_features],
     it can be used when the features of padding (on right hand side) are all zeros.
@@ -758,7 +770,7 @@ def retrieve_seq_length_op(data):
         return tf.cast(length, tf.int32)
 
 
-@tf.function
+# @tf.function
 def retrieve_seq_length_op2(data):
     """An op to compute the length of a sequence, from input shape of [batch_size, n_step(max)],
     it can be used when the features of padding (on right hand side) are all zeros.
@@ -781,7 +793,7 @@ def retrieve_seq_length_op2(data):
     return tf.reduce_sum(input_tensor=tf.cast(tf.greater(data, tf.zeros_like(data)), tf.int32), axis=1)
 
 
-@tf.function
+# @tf.function
 def retrieve_seq_length_op3(data, pad_val=0):
     """An op to compute the length of a sequence, the data shape can be [batch_size, n_step(max)] or
     [batch_size, n_step(max), n_features].

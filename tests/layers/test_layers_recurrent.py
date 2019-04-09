@@ -436,6 +436,111 @@ class Layer_RNN_Test(CustomTestCase):
             if (epoch + 1) % 10 == 0:
                 print("epoch %d, loss %f" % (epoch, loss))
 
+    def test_basic_simplernn_dropout_1(self):
+
+        inputs = tl.layers.Input([self.batch_size, self.num_steps, self.embedding_size])
+        rnnlayer = tl.layers.RNN(
+            cell=tf.keras.layers.SimpleRNNCell(units=self.hidden_size, dropout=0.5),
+            return_last=True, return_seq_2d=False, return_state=False
+        )
+        rnn = rnnlayer(inputs)
+        outputs = tl.layers.Dense(n_units=1)(rnn)
+        rnn_model = tl.models.Model(inputs=inputs, outputs=[outputs, rnn])
+        print(rnn_model)
+
+        rnn_model.train()
+        assert rnnlayer.is_train
+
+        pred_y, rnn_1 = rnn_model(self.data_x)
+        pred_y, rnn_2 = rnn_model(self.data_x)
+        self.assertFalse(np.allclose(rnn_1, rnn_2))
+
+        rnn_model.eval()
+        assert not rnnlayer.is_train
+
+        pred_y_1, rnn_1 = rnn_model(self.data_x)
+        pred_y_2, rnn_2 = rnn_model(self.data_x)
+        self.assertTrue(np.allclose(rnn_1, rnn_2))
+
+    def test_basic_simplernn_dropout_2(self):
+
+        inputs = tl.layers.Input([self.batch_size, self.num_steps, self.embedding_size])
+        rnnlayer = tl.layers.RNN(
+            cell=tf.keras.layers.SimpleRNNCell(units=self.hidden_size, recurrent_dropout=0.5),
+            return_last=True, return_seq_2d=False, return_state=False
+        )
+        rnn = rnnlayer(inputs)
+        outputs = tl.layers.Dense(n_units=1)(rnn)
+        rnn_model = tl.models.Model(inputs=inputs, outputs=[outputs, rnn])
+        print(rnn_model)
+
+        rnn_model.train()
+        assert rnnlayer.is_train
+
+        pred_y, rnn_1 = rnn_model(self.data_x)
+        pred_y, rnn_2 = rnn_model(self.data_x)
+        self.assertFalse(np.allclose(rnn_1, rnn_2))
+
+        rnn_model.eval()
+        assert not rnnlayer.is_train
+
+        pred_y_1, rnn_1 = rnn_model(self.data_x)
+        pred_y_2, rnn_2 = rnn_model(self.data_x)
+        self.assertTrue(np.allclose(rnn_1, rnn_2))
+
+    def test_basic_birnn_simplernn_dropout_1(self):
+
+        inputs = tl.layers.Input([self.batch_size, self.num_steps, self.embedding_size])
+        rnnlayer = tl.layers.BiRNN(
+            fw_cell=tf.keras.layers.SimpleRNNCell(units=self.hidden_size, dropout=0.5),
+            bw_cell=tf.keras.layers.SimpleRNNCell(units=self.hidden_size, dropout=0.5),
+            return_seq_2d=True, return_state=False
+        )
+        rnn = rnnlayer(inputs)
+        outputs = tl.layers.Dense(n_units=1)(rnn)
+        rnn_model = tl.models.Model(inputs=inputs, outputs=[outputs, rnn])
+        print(rnn_model)
+
+        rnn_model.train()
+        assert rnnlayer.is_train
+
+        pred_y, rnn_1 = rnn_model(self.data_x)
+        pred_y, rnn_2 = rnn_model(self.data_x)
+        self.assertFalse(np.allclose(rnn_1, rnn_2))
+
+        rnn_model.eval()
+        assert not rnnlayer.is_train
+
+        pred_y_1, rnn_1 = rnn_model(self.data_x)
+        pred_y_2, rnn_2 = rnn_model(self.data_x)
+        self.assertTrue(np.allclose(rnn_1, rnn_2))
+
+    def test_basic_birnn_simplernn_dropout_2(self):
+
+        inputs = tl.layers.Input([self.batch_size, self.num_steps, self.embedding_size])
+        rnnlayer = tl.layers.BiRNN(
+            fw_cell=tf.keras.layers.SimpleRNNCell(units=self.hidden_size, recurrent_dropout=0.5),
+            bw_cell=tf.keras.layers.SimpleRNNCell(units=self.hidden_size, recurrent_dropout=0.5),
+            return_seq_2d=True, return_state=False
+        )
+        rnn = rnnlayer(inputs)
+        outputs = tl.layers.Dense(n_units=1)(rnn)
+        rnn_model = tl.models.Model(inputs=inputs, outputs=[outputs, rnn])
+        print(rnn_model)
+
+        rnn_model.train()
+        assert rnnlayer.is_train
+
+        pred_y, rnn_1 = rnn_model(self.data_x)
+        pred_y, rnn_2 = rnn_model(self.data_x)
+        self.assertFalse(np.allclose(rnn_1, rnn_2))
+
+        rnn_model.eval()
+        assert not rnnlayer.is_train
+
+        pred_y_1, rnn_1 = rnn_model(self.data_x)
+        pred_y_2, rnn_2 = rnn_model(self.data_x)
+        self.assertTrue(np.allclose(rnn_1, rnn_2))
 
     def test_sequence_length(self):
         data = [[[1],[2],[0],[0],[0]],
