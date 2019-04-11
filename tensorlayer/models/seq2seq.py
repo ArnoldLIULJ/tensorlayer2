@@ -57,15 +57,8 @@ class Seq2seq(Model):
         decoding = np.array(decoding)
         
         after_embedding_decoding = self.embedding_layer(decoding)
-        # # 传进两个不同的encoding，在inference模式下，通过encoding_layer层后返回的state是不同的。
-        # # 但是，将这个不同的state传进decoding_layer后，返回的state相同。猜测---》state没传进去？
-        # # 在这里打印出来的state不同
-        # print("state before = ")
-        # print(state)
+
         feed_output, state = self.decoding_layer(after_embedding_decoding, initial_state=state, return_state=True)
-        # # 在这里打印出来的state都相同
-        # print("state after = ")
-        #(state)
         feed_output = self.reshape_layer(feed_output)
         feed_output = self.dense_layer(feed_output)
         feed_output = self.reshape_layer_individual_sequence(feed_output)
